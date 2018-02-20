@@ -1,4 +1,4 @@
-package com.wkodate.jupiter.ring.domain.model;
+package com.wkodate.jupiter.ring.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
