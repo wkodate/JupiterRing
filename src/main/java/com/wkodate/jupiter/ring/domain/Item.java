@@ -3,15 +3,14 @@ package com.wkodate.jupiter.ring.domain;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.util.Date;
 
 /**
  * Item.java
  */
 @Entity
+@Table(name = "item")
 @Getter
 @Setter
 public class Item {
@@ -29,5 +28,19 @@ public class Item {
     private Date date;
 
     private String imageUrl;
+
+    private Date created;
+
+    private Date updated;
+
+    @PrePersist
+    protected void onCreate() {
+        created = new Date();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updated = new Date();
+    }
 
 }
