@@ -1,5 +1,7 @@
 package com.wkodate.jupiter.ring.web;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wkodate.jupiter.ring.domain.Rss;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.JUnitRestDocumentation;
-import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,11 +18,13 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.requestFields;
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +43,9 @@ public class RssDocumentationTests {
     @Autowired
     private WebApplicationContext context;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private MockMvc mockMvc;
 
     @Before
@@ -51,7 +57,8 @@ public class RssDocumentationTests {
 
     @Test
     public void getRssesTest() throws Exception {
-        this.mockMvc.perform(get("/rss/").accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(get("/rss/")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("[0].id").value(1))
@@ -70,15 +77,43 @@ public class RssDocumentationTests {
                                 fieldWithPath("[0].updated").description("Updated date"))));
     }
 
+    @Test
     public void getRssTest() throws Exception {
-        this.mockMvc.perform(get("/rss/{id}", 1).accept(MediaType.APPLICATION_JSON))
+        this.mockMvc.perform(get("/rss/{id}", 1)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(1))
+                .andExpect(jsonPath("feedUrl").value("url1"))
+                .andExpect(jsonPath("title").value("title1"))
+                .andExpect(jsonPath("siteUrl").value("site-url1"))
+                .andExpect(jsonPath("description").value("description1"))
                 .andDo(document("index",
-                        //requestParameters(parameterWithName("id").description("Greeting's target")),
-                        pathParameters(parameterWithName("id").description("Greeting's target")),
-                        responseFields(fieldWithPath("id").description("Greeting's generated id"),
-                                fieldWithPath("content").description("Greeting's content"),
-                                fieldWithPath("optionalContent").description("Greeting's optional content").type(JsonFieldType.STRING).optional())));
+                        pathParameters(parameterWithName("id").description("ID")),
+                        responseFields(
+                                fieldWithPath("id").description("ID"),
+                                fieldWithPath("feedUrl").description("Feed URL"),
+                                fieldWithPath("title").description("Title"),
+                                fieldWithPath("siteUrl").description("website URL"),
+                                fieldWithPath("description").description("Description"),
+                                fieldWithPath("created").description("Created date"),
+                                fieldWithPath("updated").description("Updated date"))));
+    }
+
+    @Test
+    public void postRssTest() throws Exception {
+        Rss rss = new Rss();
+        this.mockMvc.perform(post("/rss/")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(rss)))
+                .andExpect(status().isCreated())
+                .andDo(document("index",
+                        requestFields(
+                                fieldWithPath("id").description("ID"),
+                                fieldWithPath("feedUrl").description("Feed URL"),
+                                fieldWithPath("title").description("Title"),
+                                fieldWithPath("siteUrl").description("website URL"),
+                                fieldWithPath("description").description("Description"))));
     }
 
 }
