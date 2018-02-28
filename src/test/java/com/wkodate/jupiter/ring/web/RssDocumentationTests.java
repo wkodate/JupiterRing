@@ -2,6 +2,7 @@ package com.wkodate.jupiter.ring.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wkodate.jupiter.ring.domain.Rss;
+import com.wkodate.jupiter.ring.service.RssService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +46,9 @@ public class RssDocumentationTests {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private RssService rssService;
 
     private MockMvc mockMvc;
 
@@ -102,18 +106,26 @@ public class RssDocumentationTests {
     @Test
     public void postRssTest() throws Exception {
         Rss rss = new Rss();
+        rss.setId(2L);
+        rss.setFeedUrl("post-url");
+        rss.setTitle("post");
         this.mockMvc.perform(post("/rss/")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(rss)))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("id").value(2))
+                .andExpect(jsonPath("title").value("post"))
+                .andExpect(jsonPath("feedUrl").value("post-url"))
                 .andDo(document("index",
                         requestFields(
                                 fieldWithPath("id").description("ID"),
                                 fieldWithPath("feedUrl").description("Feed URL"),
                                 fieldWithPath("title").description("Title"),
                                 fieldWithPath("siteUrl").description("website URL"),
-                                fieldWithPath("description").description("Description"))));
+                                fieldWithPath("description").description("Description"),
+                                fieldWithPath("created").description("Created date"),
+                                fieldWithPath("updated").description("Updated date"))));
     }
 
 }
